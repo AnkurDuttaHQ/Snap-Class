@@ -34,7 +34,6 @@ def apply_global_theme():
                 .stApp {
                     min-height: 100vh;
                     width: 100%;
-                    background: #101010 !important;
                 }
 
                 /* Hide top decoration */
