@@ -1,6 +1,4 @@
 import streamlit as st
-from src.ui.home_basic_layout import home_page_dashboard
 
 def student_screen():
-    home_page_dashboard()
     st.header("student screen")
