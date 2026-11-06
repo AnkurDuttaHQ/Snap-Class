@@ -149,7 +149,7 @@ def style_base_layout():
             background: #EB459E !important;
             color: #FFFFFF !important;
             border: 0.5px solid #EB459E !important;
-            border-radius: 1 rem !important;
+            border-radius: 1.2 rem !important;
             font-family: 'Montserrat', sans-serif !important;
             font-weight: 500 !important;
             position: relative;
