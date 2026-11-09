@@ -108,3 +108,7 @@ def get_teacher(username):
         return response.data[0]
 
     return None
+
+def get_all_students():
+    response = supabase.table("students").select("*").execute()
+    return response.data
