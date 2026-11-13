@@ -1,8 +1,9 @@
 import streamlit as st
-from src.components.header import header_layout_dashboard_login_teacher,header_layout_dashboard_register_teacher
+from src.components.header import header_layout_dashboard_login_teacher,header_layout_dashboard_register_teacher,header_layout_teacher_dashboard
 from src.ui.home_basic_layout import home_page_dashboard,style_base_layout
 from src.components.footer import footer_layout_dashboard
 from src.database.db import check_teacher_exists , create_teacher ,teacher_login
+from datetime import date
 
 def teacher_screen():
     home_page_dashboard()
@@ -15,9 +16,108 @@ def teacher_screen():
         teacher_screen_register()
 
 ## teacher Dashboard 
+
 def teacher_dashboard():
+
     teacher_data = st.session_state.teacher_data
-    st.header(f"""Welcome {teacher_data["name"]}""")
+
+    # ---------------- HEADER ----------------
+    c1, c2 = st.columns(
+    [1.2, 1],
+    vertical_alignment="center",
+    gap="large"
+)
+
+    with c1:
+        header_layout_teacher_dashboard()
+
+    with c2:
+        st.subheader(
+            f"Welcome, {st.session_state.teacher_data['name']}"
+        )
+
+        if st.button(
+            "Logout",
+            type="secondary",
+            key="loginbackbtn"
+        ):
+            st.session_state["isLoggedin"] = False
+            st.session_state.pop("teacher_data", None)
+            st.session_state.pop("current_teacher_tab", None)
+            st.rerun()
+    st.divider()
+
+    # ---------------- TAB NAVIGATION ----------------
+
+    
+    
+    if "current_teacher_tab" not in st.session_state:
+        st.session_state.current_teacher_tab = "take_attendance"
+
+    tab1, tab2, tab3 = st.columns(3)
+
+    with tab1:
+        type1 = (
+            "primary"
+            if st.session_state.current_teacher_tab == "take_attendance"
+            else "secondary"
+        )
+
+        if st.button(
+            "Take Attendance",
+            type=type1,
+            width="stretch",
+            icon=":material/ar_on_you:"
+        ):
+            st.session_state.current_teacher_tab = "take_attendance"
+            st.rerun()
+
+
+    with tab2:
+        type2 = (
+            "primary"
+            if st.session_state.current_teacher_tab == "manage_subjects"
+            else "secondary"
+        )
+
+        if st.button(
+            "Manage Subjects",
+            type=type2,
+            width="stretch",
+            icon=":material/menu_book:"
+        ):
+            st.session_state.current_teacher_tab = "manage_subjects"
+            st.rerun()
+
+
+    with tab3:
+        type3 = (
+            "primary"
+            if st.session_state.current_teacher_tab == "attendance_records"
+            else "secondary"
+        )
+
+        if st.button(
+            "Attendance Records",
+            type=type3,
+            width="stretch",
+            icon=":material/cards_stack:"
+        ):
+            st.session_state.current_teacher_tab = "attendance_records"
+            st.rerun()
+
+
+    st.divider()
+
+    # ---------------- TAKE ATTENDANCE ----------------
+    if st.session_state.current_teacher_tab == "take_attendance":
+        teacher_tab_take_attendence()
+    if st.session_state.current_teacher_tab == "manage_subjects":
+        teacher_tab_manage_subjects()
+    if st.session_state.current_teacher_tab == "attendance_records":
+        teacher_tab_attendence_records()
+
+    footer_layout_dashboard()
 
 ## Intermediate function after login state chnage to dashboard
 def login_teacher(username , password):
@@ -167,3 +267,29 @@ def teacher_screen_register():
         
     footer_layout_dashboard()
     
+def teacher_tab_take_attendence():
+    st.header("Take AI attendence")
+
+def teacher_tab_manage_subjects():
+    teacher_data = st.session_state.teacher_data
+    teacher_id = teacher_data['teacher_id']
+
+    col1, col2 = st.columns(
+        [2, 1],
+        vertical_alignment="center"
+    )
+
+    with col1:
+        st.header("Manage Subjects")
+
+    with col2:
+        if st.button(
+            "Create New Subject",
+            width="stretch",
+            type="primary",
+            icon=":material/add:"
+        ):
+            create_new_subject_dialogue(teacher_id)
+        
+def teacher_tab_attendence_records():
+    st.header("Check attendence Records")

@@ -582,3 +582,133 @@ def header_layout_dashboard_student_login(page_title="Login with Your Face ID"):
             scrolling=False
         )
 
+
+
+
+def header_layout_teacher_dashboard():
+
+    style_base_layout()
+
+    logo_path = (
+        Path(__file__).resolve().parents[1]
+        / "Assets"
+        / "logo.jpg"
+    )
+
+    with open(logo_path, "rb") as image:
+        logo = base64.b64encode(image.read()).decode("utf-8")
+
+    # Main centered container
+    _, main_col, _ = st.columns([1, 10, 1])
+
+    with main_col:
+
+        # Logo and brand name
+        html_logo = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap"
+                  rel="stylesheet">
+
+            <style>
+                * {{
+                    box-sizing: border-box;
+                }}
+
+                body {{
+                    margin: 0;
+                    padding: 0;
+                    background: transparent;
+                }}
+
+                .brand {{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 18px;
+                    width: 100%;
+                    height: 105px;
+                }}
+
+                .snap-logo {{
+                    width: 85px;
+                    height: 85px;
+                    object-fit: contain;
+                    border-radius: 18px;
+                    flex-shrink: 0;
+                }}
+
+                .snap-title {{
+                    font-family: 'Climate Crisis', sans-serif;
+                    font-size: 34px;
+                    line-height: 1;
+                    letter-spacing: -1px;
+                    color: #5865F2;
+                    margin: 0;
+                }}
+            </style>
+        </head>
+
+        <body>
+            <div class="brand">
+                <img
+                    class="snap-logo"
+                    src="data:image/jpeg;base64,{logo}"
+                    alt="SnapClass Logo"
+                >
+
+                <h1 class="snap-title">
+                    SNAP<br>CLASS
+                </h1>
+            </div>
+        </body>
+        </html>
+        """
+
+        components.html(
+            html_logo,
+            height=110,
+            scrolling=False
+        )
+
+        # Dashboard heading
+        html_heading = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <link href="https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap"
+                  rel="stylesheet">
+
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background: transparent;
+                }
+
+                .page-title {
+                    font-family: 'Climate Crisis', sans-serif;
+                    font-size: clamp(27px, 3vw, 38px);
+                    line-height: 1.2;
+                    font-weight: 400;
+                    letter-spacing: 0;
+                    color: #24243D;
+                    text-align: center;
+                    margin: 5px 0 0 0;
+                    padding: 0;
+                }
+            </style>
+        </head>
+
+        <body>
+            <h1 class="page-title">Your Profile is Here</h1>
+        </body>
+        </html>
+        """
+
+        components.html(
+            html_heading,
+            height=65,
+            scrolling=False
+        )

@@ -64,6 +64,7 @@ def create_teacher(username, password, name):
     return response.data
 
 
+
 def teacher_login(username, password):
 
     username = username.strip()
@@ -74,7 +75,7 @@ def teacher_login(username, password):
     response = (
         supabase
         .table("teachers")
-        .select("username, password, name")
+        .select("teacher_id, username, password, name")
         .eq("username", username)
         .execute()
     )
@@ -87,12 +88,12 @@ def teacher_login(username, password):
     if check_pass(password, teacher["password"]):
 
         return {
+            "teacher_id": teacher["teacher_id"],
             "username": teacher["username"],
             "name": teacher["name"]
         }
 
     return None
-
 
 def get_teacher(username):
 

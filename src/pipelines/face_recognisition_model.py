@@ -144,50 +144,63 @@ def predict_attendence(class_image_np):
 
     model_data = get_trained_model()
 
-    all_students = []
-
     if model_data is None:
-
-        return detected_students, all_students, len(embeddings)
-
-    clf = model_data["clf"]
+        return detected_students, [], len(embeddings)
 
     X_train = model_data["X"]
-
     Y_train = model_data["Y"]
 
     all_students = list(np.unique(Y_train))
 
+    # Initial conservative threshold.
+    # Calibrate using genuine and impostor face images.
+    similarity_threshold = 0.45
+
+    # Minimum distance difference between two different identities.
+    ambiguity_margin = 0.05
+
     for embedding in embeddings:
 
-        embedding = np.asarray(embedding, dtype=np.float64)
+        embedding = np.asarray(
+            embedding,
+            dtype=np.float64
+        )
 
-        # Find nearest registered face
         distances = np.linalg.norm(
             X_train - embedding,
             axis=1
         )
 
+        # Best match
         best_index = int(np.argmin(distances))
-
         best_match_score = float(distances[best_index])
 
         predicted_id = Y_train[best_index]
 
-        # If multiple students are registered,
-        # also use the SVM prediction
-        if clf is not None:
+        # Reject if the closest face is too different
+        if best_match_score > similarity_threshold:
+            print("Face rejected. Distance:", best_match_score)
+            continue
 
-            svm_prediction = clf.predict([embedding])[0]
+        # Find the closest match belonging to another student
+        other_student_distances = distances[
+            Y_train != predicted_id
+        ]
 
-            if svm_prediction == predicted_id:
-                predicted_id = svm_prediction
+        if len(other_student_distances) > 0:
 
-        # Initial threshold; calibrate using your own validation images
-        similarity_threshold = 0.6
+            second_best_score = float(
+                np.min(other_student_distances)
+            )
 
-        if best_match_score <= similarity_threshold:
+            # Reject ambiguous identity matches
+            if second_best_score - best_match_score < ambiguity_margin:
+                print("Ambiguous face match. Rejected.")
+                continue
 
-            detected_students[predicted_id] = True
+        detected_students[predicted_id] = True
+
+        print("Face accepted:", predicted_id)
+        print("Distance:", best_match_score)
 
     return detected_students, all_students, len(embeddings)
