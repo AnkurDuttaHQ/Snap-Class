@@ -2,8 +2,11 @@ import streamlit as st
 from src.components.header import header_layout_dashboard_login_teacher,header_layout_dashboard_register_teacher,header_layout_teacher_dashboard
 from src.ui.home_basic_layout import home_page_dashboard,style_base_layout
 from src.components.footer import footer_layout_dashboard
-from src.database.db import check_teacher_exists , create_teacher ,teacher_login
+from src.database.db import check_teacher_exists , create_teacher ,teacher_login,get_teacher_subject
 from datetime import date
+from src.components.create_subject_diologue import create_subject_dialog
+from src.components.subject_card import subject_card
+from src.components.share_subject_dialog import share_subject_dialog
 
 def teacher_screen():
     home_page_dashboard()
@@ -289,7 +292,46 @@ def teacher_tab_manage_subjects():
             type="primary",
             icon=":material/add:"
         ):
-            create_new_subject_dialogue(teacher_id)
+            create_subject_dialog(teacher_id)
+
+    #list all subject that has been created
+
+    subjects = get_teacher_subject(teacher_id)
+
+    if subjects:
+
+        for sub in subjects:
+
+            stats = [
+                ("👥", "Students", sub['total_students']),
+                ("📚", "Classes", sub['total_classes']),
+            ]
+
+            def share_btn():
+                if st.button(
+                    f"Share Code: {sub['subject_name']}",
+                    key=f"share_{sub['subject_code']}",
+                    icon=":material/share:"
+                ):
+                    share_subject_dialog(
+                        sub['subject_name'],
+                        sub['subject_code']
+                    )
+
+            st.space()
+
+            subject_card(
+                name=sub['subject_name'],
+                code=sub['subject_code'],
+                section=sub['section'],
+                stats=stats,
+                footer_callback=share_btn
+            )
+
+    else:
+        st.info("NO SUBJECTS FOUND. CREATE ONE ABOVE")
+
+
         
 def teacher_tab_attendence_records():
     st.header("Check attendence Records")
