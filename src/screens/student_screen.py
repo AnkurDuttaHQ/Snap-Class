@@ -4,12 +4,12 @@ import numpy as np
 import time
 import io
 from PIL import Image
-
+from src.components.enroll_dialog import enroll_dialog
 from src.ui.camera_style import camera_page_style
-from src.components.header import header_layout_dashboard_student_login
+from src.components.header import header_layout_dashboard_student_login,header_layout_student_dashboard
 from src.ui.home_basic_layout import home_page_dashboard, style_base_layout
 from src.components.footer import footer_layout_dashboard
-
+from src.database.db import get_student_subjects,get_student_attendence
 from src.pipelines.face_recognisition_model import (
     predict_attendence,
     get_face_embeddings,
@@ -21,7 +21,61 @@ from src.pipelines.voice_recognition import load_voice_embeddings
 
 
 def student_dashboard():
-    st.header("Student Dashboard")
+    c1, c2 = st.columns(
+        [1.2, 1],
+        vertical_alignment="center",
+        gap="large"
+    )
+    
+    with c1:
+            header_layout_student_dashboard()
+    
+    with c2:
+            st.subheader(
+                f"Welcome, {st.session_state.student_data['name']}"
+            )
+    
+            if st.button(
+                "Logout",
+                type="secondary",
+                key="loginbackbtn"
+            ):
+                st.session_state["isLoggedin"] = False
+                st.session_state.pop("student_data", None)
+                st.session_state.pop("current_student_tab", None)
+                st.rerun()
+
+    c1 , c2 = st.columns(2)
+    with c1:
+
+        st.header("Your Enrolled Subjects")
+    with c2:
+        if st.button("Enroll in a subject",type="primary",width="stretch"):
+            enroll_dialog()
+
+    st.divider()
+    student_data = st.session_state.student_data
+    with st.spinner("loading your subjects..."):
+        subjects = get_student_subjects(student_data["student_id"])
+        logs =  get_student_attendence(student_data["student_id"])
+
+    stats_map = {
+
+    }
+
+    for log in logs:
+        sid = log("subject_id")
+
+        if sid not in stats_map:
+            stats_map[sid] = {"total":0,"attendence":0}
+
+        stats_map[sid]["total"]+=1
+        if log.get("is_present"):
+            stats_map[sid]["attendence"]+=1
+
+
+
+    footer_layout_dashboard()
 
 
 def student_screen():
