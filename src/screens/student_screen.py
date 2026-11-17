@@ -55,10 +55,10 @@ def student_dashboard():
 
     st.divider()
     student_data = st.session_state.student_data
+    student_id = student_data["student_id"]
     with st.spinner("loading your subjects..."):
-        subjects = get_student_subjects(student_data["student_id"])
-        logs =  get_student_attendence(student_data["student_id"])
-
+        subjects = get_student_subjects(student_id)
+        logs =  get_student_attendence(student_id)
     stats_map = {
 
     }
