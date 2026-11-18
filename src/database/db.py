@@ -144,14 +144,42 @@ def enroll_student_tosubject(subject_id,student_id):
     response = supabase.table("subject_students").insert(data).execute()
     return response.data
 
-def unenroll_student_tosubject(subject_id,student_id):
-    response = supabase.table("subject_students").delete().eq("student_id",student_id).eq("subject_id",subject_id).execute()
+
+def unenroll_student_tosubject(subject_id, student_id):
+
+    response = (
+        supabase
+        .table("subject_students")
+        .delete()
+        .eq("student_id", student_id)
+        .eq("subject_id", subject_id)
+        .execute()
+    )
+
     return response.data
+
 
 def get_student_subjects(student_id):
-    response = supabase.table("subject_students").select("*,subjects(*)",student_id).execute()
-    return response.data
+
+    response = (
+        supabase
+        .table("subject_students")
+        .select("*, subjects(*)")
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    return response.data or []
+
 
 def get_student_attendence(student_id):
-    response = supabase.table("attendence_logs").select("*,subjects(*)",student_id).execute()
-    return response.data
+
+    response = (
+        supabase
+        .table("attendence_logs")
+        .select("*, subjects(*)")
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    return response.data or []

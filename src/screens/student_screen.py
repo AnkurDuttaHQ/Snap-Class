@@ -9,7 +9,7 @@ from src.ui.camera_style import camera_page_style
 from src.components.header import header_layout_dashboard_student_login,header_layout_student_dashboard
 from src.ui.home_basic_layout import home_page_dashboard, style_base_layout
 from src.components.footer import footer_layout_dashboard
-from src.database.db import get_student_subjects,get_student_attendence
+from src.database.db import get_student_subjects,get_student_attendence,unenroll_student_tosubject
 from src.pipelines.face_recognisition_model import (
     predict_attendence,
     get_face_embeddings,
@@ -18,6 +18,7 @@ from src.pipelines.face_recognisition_model import (
 
 from src.database.db import get_all_students, create_student
 from src.pipelines.voice_recognition import load_voice_embeddings
+from src.components.subject_card import subject_card
 
 
 def student_dashboard():
@@ -26,56 +27,114 @@ def student_dashboard():
         vertical_alignment="center",
         gap="large"
     )
-    
+
     with c1:
-            header_layout_student_dashboard()
-    
+        header_layout_student_dashboard()
+
     with c2:
-            st.subheader(
-                f"Welcome, {st.session_state.student_data['name']}"
-            )
-    
-            if st.button(
-                "Logout",
-                type="secondary",
-                key="loginbackbtn"
-            ):
-                st.session_state["isLoggedin"] = False
-                st.session_state.pop("student_data", None)
-                st.session_state.pop("current_student_tab", None)
-                st.rerun()
+        st.subheader(
+            f"Welcome, {st.session_state.student_data['name']}"
+        )
 
-    c1 , c2 = st.columns(2)
+        if st.button(
+            "Logout",
+            type="secondary",
+            key="loginbackbtn"
+        ):
+            st.session_state["isLoggedin"] = False
+            st.session_state.pop("student_data", None)
+            st.session_state.pop("current_student_tab", None)
+            st.rerun()
+
+    c1, c2 = st.columns(2)
+
     with c1:
-
         st.header("Your Enrolled Subjects")
+
     with c2:
-        if st.button("Enroll in a subject",type="primary",width="stretch"):
+        if st.button(
+            "Enroll in a subject",
+            type="primary",
+            width="stretch"
+        ):
             enroll_dialog()
 
     st.divider()
+
     student_data = st.session_state.student_data
     student_id = student_data["student_id"]
-    with st.spinner("loading your subjects..."):
-        subjects = get_student_subjects(student_id)
-        logs =  get_student_attendence(student_id)
-    stats_map = {
 
-    }
+    with st.spinner("Loading your subjects..."):
+        subjects = get_student_subjects(student_id)
+        logs = get_student_attendence(student_id)
+
+    # Attendance statistics
+    stats_map = {}
 
     for log in logs:
-        sid = log("subject_id")
+        sid = log.get("subject_id")
+
+        if sid is None:
+            continue
 
         if sid not in stats_map:
-            stats_map[sid] = {"total":0,"attendence":0}
+            stats_map[sid] = {
+                "total": 0,
+                "attendence": 0
+            }
 
-        stats_map[sid]["total"]+=1
+        stats_map[sid]["total"] += 1
+
         if log.get("is_present"):
-            stats_map[sid]["attendence"]+=1
+            stats_map[sid]["attendence"] += 1
 
+    if not subjects:
+        st.info("You haven't enrolled in any subjects yet.")
+    else:
+        cols = st.columns(2)
 
+        for i, sub_node in enumerate(subjects):
+
+            sub = sub_node.get("subjects")
+
+            if not sub:
+                continue
+
+            sid = sub["subject_id"]
+
+            stats = stats_map.get(
+                sid,
+                {"total": 0, "attendence": 0}
+            )
+
+            # Unenroll button
+            def unroll_btn(subject_id=sid):
+                if st.button(
+                    "Unenroll from this course",
+                    type="secondary",
+                    key=f"unenroll_{subject_id}"
+                ):
+                    unenroll_student_tosubject(
+                        subject_id,
+                        student_id
+                    )
+                    st.success("Successfully unenrolled!")
+                    st.rerun()
+
+            with cols[i % 2]:
+                subject_card(
+                    name=sub["subject_name"],
+                    code=sub["subject_code"],
+                    section=sub.get("section", ""),
+                    stats=[
+                        ("📅", "Total", stats["total"]),
+                        ("✅", "Attended", stats["attendence"]),
+                    ],
+                    footer_callback=unroll_btn
+                )
 
     footer_layout_dashboard()
+
 
 
 def student_screen():
